@@ -5,3 +5,9 @@
 __pycache__/
 *.pyc
 db.sqlite3
+# Node
+node_modules/
+blog-client/node_modules/
+
+# Frontend build
+dist/
