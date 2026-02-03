@@ -19,9 +19,12 @@ class ArticleSerializer(serializers.ModelSerializer):
     # 2) [{"name": "news"}, {"name": "django"}]
     tags_input = serializers.ListField(required=False, write_only=True)
 
+    image_url = serializers.URLField(required=False, allow_null=True, allow_blank=True)
+
+
     class Meta:
         model = Article
-        fields = ("id", "title", "content", "published_at", "author_name", "tags", "tags_input")
+        fields = ("id", "title", "content", "published_at", "author_name","image_url", "tags", "tags_input")
 
     def _normalize_tags(self, raw_tags):
         """

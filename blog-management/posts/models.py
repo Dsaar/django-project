@@ -17,6 +17,7 @@ class Article(models.Model):
     published_at = models.DateTimeField(auto_now_add=True)
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name="articles")
     tags = models.ManyToManyField(Tag, blank=True, related_name="articles")
+    image_url = models.URLField(blank=True, null=True)
 
     class Meta:
         ordering = ["-published_at"]

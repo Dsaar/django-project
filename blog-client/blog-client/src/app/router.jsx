@@ -4,6 +4,8 @@ import ArticlesPage from "../pages/ArticlesPage";
 import ArticleDetailPage from "../pages/ArticleDetailPage";
 import LoginPage from "../pages/LoginPage";
 import RegisterPage from "../pages/RegisterPage";
+import ProfilePage from "../pages/ProfilePage";
+import ProtectedRoute from "../components/ProtectedRoute";
 
 export default function Router() {
 	return (
@@ -13,6 +15,15 @@ export default function Router() {
 			<Route path="/articles/:id" element={<ArticleDetailPage />} />
 			<Route path="/login" element={<LoginPage />} />
 			<Route path="/register" element={<RegisterPage />} />
+
+			<Route
+				path="/profile"
+				element={
+					<ProtectedRoute>
+						<ProfilePage />
+					</ProtectedRoute>
+				}
+			/>
 		</Routes>
 	);
 }
