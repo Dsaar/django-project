@@ -1,8 +1,9 @@
+// src/pages/ArticlesPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { fetchArticles } from "../services/articles";
 import ArticleCard from "../components/ArticleCard";
-import { Container, Grid, Typography, Alert, Stack, Chip, Button } from "@mui/material";
+import { Container, Typography, Alert, Box, Stack, Chip, Button } from "@mui/material";
 
 export default function ArticlesPage() {
 	const [searchParams, setSearchParams] = useSearchParams();
@@ -15,12 +16,12 @@ export default function ArticlesPage() {
 
 	useEffect(() => {
 		(async () => {
-			setError("");
 			try {
+				setError("");
 				const params = tag ? { "tags__name": tag } : {};
 				const items = await fetchArticles(params);
-				setArticles(items);
-			} catch (e) {
+				setArticles(Array.isArray(items) ? items : []);
+			} catch {
 				setError("Failed to load articles.");
 				setArticles([]);
 			}
@@ -28,14 +29,16 @@ export default function ArticlesPage() {
 	}, [tag]);
 
 	const clearFilter = () => {
-		searchParams.delete("tag");
-		setSearchParams(searchParams);
+		const next = new URLSearchParams(searchParams);
+		next.delete("tag");
+		setSearchParams(next);
 	};
 
 	return (
-		<Container sx={{ py: 4 }}>
+		<Container maxWidth="lg" sx={{ py: 4 }}>
+			{/* ✅ Header + active tag filter UI */}
 			<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-				<Typography variant="h4" sx={{ flex: 1 }}>
+				<Typography variant="h4" sx={{ flex: 1, fontWeight: 900 }}>
 					{tag ? `Articles tagged: ${tag}` : "All Articles"}
 				</Typography>
 
@@ -49,15 +52,31 @@ export default function ArticlesPage() {
 				)}
 			</Stack>
 
-			{error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+			{error && (
+				<Alert severity="error" sx={{ mb: 2 }}>
+					{error}
+				</Alert>
+			)}
 
-			<Grid container spacing={2}>
+			{/* ✅ Keep your grid */}
+			<Box
+				sx={{
+					display: "grid",
+					gap: 3,
+					gridTemplateColumns: {
+						xs: "1fr",
+						sm: "repeat(2, minmax(0, 1fr))",
+						md: "repeat(3, minmax(0, 1fr))",
+					},
+					alignItems: "stretch",
+				}}
+			>
 				{articles.map((a) => (
-					<Grid item xs={12} md={6} key={a.id}>
+					<Box key={a.id} sx={{ display: "flex" }}>
 						<ArticleCard article={a} />
-					</Grid>
+					</Box>
 				))}
-			</Grid>
+			</Box>
 		</Container>
 	);
 }

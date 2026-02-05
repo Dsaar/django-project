@@ -41,25 +41,31 @@ class ProfileSerializer(serializers.ModelSerializer):
 
 
 class MeSerializer(serializers.ModelSerializer):
-    profile = ProfileSerializer(required=False)
+    profile = ProfileSerializer(required=False, allow_null=True)
+    groups = serializers.SerializerMethodField()
 
     class Meta:
         model = User
-        fields = ("id", "username", "email", "first_name", "last_name", "profile")
+        fields = (
+            "id", "username", "email", "first_name", "last_name",
+            "is_staff", "is_superuser", "groups",
+            "profile",
+        )
+
+    def get_groups(self, obj):
+        return list(obj.groups.values_list("name", flat=True))
 
     def update(self, instance, validated_data):
-        profile_data = validated_data.pop("profile", None)
+        profile_data = validated_data.pop("profile", {})
 
-        # Update user fields
         for attr, val in validated_data.items():
             setattr(instance, attr, val)
         instance.save()
 
-        # Update profile fields (create if missing)
-        if profile_data is not None:
-            profile, _ = Profile.objects.get_or_create(user=instance)
-            for attr, val in profile_data.items():
-                setattr(profile, attr, val)
-            profile.save()
+        # ensure profile exists
+        profile, _ = Profile.objects.get_or_create(user=instance)
+        for attr, val in profile_data.items():
+            setattr(profile, attr, val)
+        profile.save()
 
         return instance

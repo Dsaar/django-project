@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import ArticleCommentListCreateView, CommentDeleteView
+from .views import ArticleCommentListCreateView, CommentDetailView
 
 urlpatterns = [
     path(
@@ -9,8 +9,8 @@ urlpatterns = [
     ),
     path(
         "comments/<int:pk>/",
-        CommentDeleteView.as_view(),
-        name="comment-delete",
+        CommentDetailView.as_view(),
+        name="comment-detail",
     ),
 ]
 

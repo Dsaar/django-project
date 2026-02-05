@@ -12,20 +12,25 @@ class ArticleCommentListCreateView(generics.ListCreateAPIView):
 
     def get_queryset(self):
         article_id = self.kwargs["article_id"]
-        return Comment.objects.filter(article_id=article_id)
+        return Comment.objects.filter(article_id=article_id).select_related("author")
 
     def perform_create(self, serializer):
         article = get_object_or_404(Article, id=self.kwargs["article_id"])
         serializer.save(author=self.request.user, article=article)
 
     def get_permissions(self):
-        # keep it simple: anyone can read, only authenticated can create
         if self.request.method == "POST":
             return [permissions.IsAuthenticated()]
         return [permissions.AllowAny()]
 
 
-class CommentDeleteView(generics.DestroyAPIView):
-    queryset = Comment.objects.all()
+class CommentDetailView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    GET    /api/comments/<id>/      (optional but handy)
+    PATCH  /api/comments/<id>/      (edit comment)
+    PUT    /api/comments/<id>/
+    DELETE /api/comments/<id>/      (delete comment)
+    """
+    queryset = Comment.objects.all().select_related("author", "article")
     serializer_class = CommentSerializer
-    permission_classes = [IsOwnerOrAdminGroup]  # ✅ owner deletes own, admin deletes any
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly, IsOwnerOrAdminGroup] 

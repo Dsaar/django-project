@@ -10,29 +10,36 @@ class TagSerializer(serializers.ModelSerializer):
 
 class ArticleSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.username", read_only=True)
-
-    # Keep tags as nested objects in responses:
     tags = TagSerializer(many=True, read_only=True)
 
-    # Allow input in either format:
-    # 1) ["news", "django"]
-    # 2) [{"name": "news"}, {"name": "django"}]
     tags_input = serializers.ListField(required=False, write_only=True)
 
+    # if image_url is a model field, this is optional; keep it if you want allow_blank behavior
     image_url = serializers.URLField(required=False, allow_null=True, allow_blank=True)
 
+    author_avatar_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Article
-        fields = ("id", "title", "content", "published_at", "author_name","image_url", "tags", "tags_input")
+        fields = (
+            "id",
+            "title",
+            "content",
+            "published_at",
+            "author_name",
+            "author_avatar_url",
+            "image_url",
+            "tags",
+            "tags_input",
+        )
+
+    def get_author_avatar_url(self, obj):
+        try:
+            return obj.author.profile.avatar_url
+        except Exception:
+            return ""
 
     def _normalize_tags(self, raw_tags):
-        """
-        Converts incoming tags into a clean list of tag names.
-        Accepts:
-          - list[str]
-          - list[dict] with {"name": "..."}
-        """
         if not raw_tags:
             return []
 
@@ -47,13 +54,13 @@ class ArticleSerializer(serializers.ModelSerializer):
             if name:
                 names.append(name)
 
-        # optional: de-dupe while preserving order
         seen = set()
         unique = []
         for n in names:
-            if n.lower() not in seen:
+            key = n.lower()
+            if key not in seen:
                 unique.append(n)
-                seen.add(n.lower())
+                seen.add(key)
         return unique
 
     def create(self, validated_data):

@@ -29,3 +29,4 @@ export async function updateComment(commentId, content) {
 export async function deleteComment(commentId) {
 	await api.delete(`/comments/${commentId}/`);
 }
+

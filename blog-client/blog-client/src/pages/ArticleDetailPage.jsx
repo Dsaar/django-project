@@ -1,4 +1,3 @@
-// src/pages/ArticleDetailPage.jsx
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
@@ -9,7 +8,6 @@ import {
 	Alert,
 	CircularProgress,
 	Paper,
-	Divider,
 } from "@mui/material";
 
 import { fetchArticleById } from "../services/articles";
@@ -24,11 +22,11 @@ export default function ArticleDetailPage() {
 	const { user } = useAuth();
 
 	const [article, setArticle] = useState(null);
-	const [comments, setComments] = useState([]); // ALWAYS an array
+	const [comments, setComments] = useState([]);
 	const [content, setContent] = useState("");
 
 	const [editingId, setEditingId] = useState(null);
-	const [editingText, setEditingText] = useState("");
+	const [editingValue, setEditingValue] = useState("");
 
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
@@ -41,12 +39,10 @@ export default function ArticleDetailPage() {
 				fetchArticleById(articleId),
 				fetchComments(articleId),
 			]);
-
 			setArticle(a);
 			setComments(Array.isArray(c) ? c : []);
-		} catch (e) {
+		} catch {
 			setError("Failed to load article or comments.");
-			setArticle(null);
 			setComments([]);
 		} finally {
 			setLoading(false);
@@ -60,27 +56,25 @@ export default function ArticleDetailPage() {
 	}, [articleId]);
 
 	const submitComment = async () => {
-		const text = content.trim();
-		if (!text) return;
-		await createComment(articleId, text);
+		if (!content.trim()) return;
+		await createComment(articleId, content.trim());
 		setContent("");
 		await load();
 	};
 
-	const startEdit = (c) => {
-		setEditingId(c.id);
-		setEditingText(c.content || "");
+	const startEdit = (comment) => {
+		setEditingId(comment.id);
+		setEditingValue(comment.content || "");
 	};
 
 	const cancelEdit = () => {
 		setEditingId(null);
-		setEditingText("");
+		setEditingValue("");
 	};
 
 	const saveEdit = async () => {
-		const text = editingText.trim();
-		if (!text) return;
-		await updateComment(editingId, text);
+		if (!editingValue.trim()) return;
+		await updateComment(editingId, editingValue.trim());
 		cancelEdit();
 		await load();
 	};
@@ -94,8 +88,6 @@ export default function ArticleDetailPage() {
 	if (error) return <Alert severity="error">{error}</Alert>;
 	if (!article) return null;
 
-	const published = article.published_at ? new Date(article.published_at).toLocaleString() : "";
-
 	return (
 		<>
 			<Typography variant="h4" sx={{ fontWeight: 800, mb: 0.5 }}>
@@ -103,56 +95,30 @@ export default function ArticleDetailPage() {
 			</Typography>
 
 			<Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-				By {article.author_name || "Unknown"}{published ? ` • ${published}` : ""}
+				By {article.author_name} •{" "}
+				{article.published_at ? new Date(article.published_at).toLocaleString() : ""}
 			</Typography>
 
 			<Typography sx={{ mb: 3 }}>{article.content}</Typography>
-
-			<Divider sx={{ mb: 2 }} />
 
 			<Typography variant="h6" sx={{ mb: 1 }}>
 				Comments
 			</Typography>
 
 			<Stack spacing={2} sx={{ mb: 3 }}>
-				{comments.length === 0 && (
-					<Typography variant="body2" color="text.secondary">
-						No comments yet.
-					</Typography>
-				)}
-
 				{comments.map((c) => {
-					const canManage = canManageComment(user, c);
+					const isEditing = editingId === c.id;
 
 					return (
 						<Paper key={c.id} variant="outlined" sx={{ p: 2 }}>
-							{editingId === c.id ? (
-								<>
-									<TextField
-										fullWidth
-										multiline
-										minRows={2}
-										value={editingText}
-										onChange={(e) => setEditingText(e.target.value)}
-										label="Edit comment"
-									/>
-									<Stack direction="row" spacing={1} sx={{ mt: 1 }}>
-										<Button size="small" variant="contained" onClick={saveEdit}>
-											Save
-										</Button>
-										<Button size="small" variant="outlined" onClick={cancelEdit}>
-											Cancel
-										</Button>
-									</Stack>
-								</>
-							) : (
+							{!isEditing ? (
 								<>
 									<Typography sx={{ mb: 0.5 }}>{c.content}</Typography>
 									<Typography variant="caption" color="text.secondary">
 										by {c.author_name}
 									</Typography>
 
-									{canManage && (
+									{canManageComment(user, c) && (
 										<Stack direction="row" spacing={1} sx={{ mt: 1 }}>
 											<Button size="small" onClick={() => startEdit(c)}>
 												Edit
@@ -163,13 +129,32 @@ export default function ArticleDetailPage() {
 										</Stack>
 									)}
 								</>
+							) : (
+								<>
+									<TextField
+										fullWidth
+										multiline
+										minRows={2}
+										value={editingValue}
+										onChange={(e) => setEditingValue(e.target.value)}
+										label="Edit comment"
+									/>
+									<Stack direction="row" spacing={1} sx={{ mt: 1 }}>
+										<Button variant="contained" size="small" onClick={saveEdit}>
+											Save
+										</Button>
+										<Button size="small" onClick={cancelEdit}>
+											Cancel
+										</Button>
+									</Stack>
+								</>
 							)}
 						</Paper>
 					);
 				})}
 			</Stack>
 
-			{user?.isAuthenticated ? (
+			{user?.isAuthenticated && (
 				<>
 					<TextField
 						fullWidth
@@ -183,8 +168,6 @@ export default function ArticleDetailPage() {
 						Submit
 					</Button>
 				</>
-			) : (
-				<Alert severity="info">Log in to add a comment.</Alert>
 			)}
 		</>
 	);

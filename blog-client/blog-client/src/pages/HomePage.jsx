@@ -1,5 +1,13 @@
 import { useEffect, useState } from "react";
-import { Typography, Stack, Button, Alert, Paper, Box } from "@mui/material";
+import {
+	Typography,
+	Stack,
+	Button,
+	Alert,
+	Paper,
+	Box,
+	Container,
+} from "@mui/material";
 import { Link as RouterLink } from "react-router-dom";
 import { fetchLatestArticles } from "../services/articles";
 import ArticleCard from "../components/ArticleCard";
@@ -15,19 +23,22 @@ export default function HomePage() {
 	}, []);
 
 	return (
-		<>
+		<Container maxWidth="lg" sx={{ py: 4 }}>
+			{/* HERO */}
 			<Paper
 				variant="outlined"
 				sx={{
 					p: { xs: 3, md: 5 },
-					mb: 3,
+					mb: 4,
 					borderRadius: 4,
-					background: "linear-gradient(135deg, rgba(31,111,120,0.12), rgba(224,122,95,0.12))",
+					background:
+						"linear-gradient(135deg, rgba(31,111,120,0.12), rgba(224,122,95,0.12))",
 				}}
 			>
 				<Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
 					Wander Notes
 				</Typography>
+
 				<Typography color="text.secondary" sx={{ maxWidth: 720 }}>
 					Stories, guides, and photo-driven travel diaries — built with Django + React.
 				</Typography>
@@ -39,6 +50,7 @@ export default function HomePage() {
 				</Box>
 			</Paper>
 
+			{/* LATEST */}
 			<Typography variant="h5" sx={{ fontWeight: 900, mb: 2 }}>
 				Latest stories
 			</Typography>
@@ -49,11 +61,11 @@ export default function HomePage() {
 				</Alert>
 			)}
 
-			<Stack spacing={2}>
+			<Stack spacing={3}>
 				{items.map((a) => (
 					<ArticleCard key={a.id} article={a} />
 				))}
 			</Stack>
-		</>
+		</Container>
 	);
 }
