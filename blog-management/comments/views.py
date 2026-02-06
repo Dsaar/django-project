@@ -9,6 +9,7 @@ from common.permissions import IsOwnerOrAdminGroup  # ✅ reuse shared permissio
 
 class ArticleCommentListCreateView(generics.ListCreateAPIView):
     serializer_class = CommentSerializer
+    pagination_class = None
 
     def get_queryset(self):
         article_id = self.kwargs["article_id"]
