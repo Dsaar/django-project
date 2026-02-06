@@ -1,3 +1,4 @@
+// src/components/Navbar.jsx
 import {
 	AppBar,
 	Toolbar,
@@ -8,19 +9,34 @@ import {
 	IconButton,
 	Avatar,
 	Stack,
+	Drawer,
+	List,
+	ListItemButton,
+	ListItemText,
+	Divider,
+	InputAdornment,
+	useMediaQuery,
 } from "@mui/material";
 import SearchIcon from "@mui/icons-material/Search";
+import MenuIcon from "@mui/icons-material/Menu";
+import CloseIcon from "@mui/icons-material/Close";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import { useTheme } from "@mui/material/styles";
 
 export default function Navbar() {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
 	const location = useLocation();
-	const [tagQuery, setTagQuery] = useState("");
 
-	// ✅ Use the SAME fields as the version that worked
+	const theme = useTheme();
+	const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+
+	const [tagQuery, setTagQuery] = useState("");
+	const [drawerOpen, setDrawerOpen] = useState(false);
+
+	// ✅ same fields that work in your app
 	const avatarUrl = user?.profile?.avatar_url || "";
 	const displayName = user?.profile?.display_name || user?.username || "Account";
 
@@ -31,21 +47,34 @@ export default function Navbar() {
 			return;
 		}
 		navigate(`/articles?tag=${encodeURIComponent(t)}`);
-	};
-
-	const onKeyDown = (e) => {
-		if (e.key === "Enter") runTagSearch();
+		// optional UX:
+		// setTagQuery("");
 	};
 
 	const handleLogout = () => {
 		logout();
-		// optional UX: if user logs out while on profile, send them home
 		if (location.pathname === "/profile") navigate("/");
 	};
 
+	const closeDrawer = () => setDrawerOpen(false);
+
+	const authLinks = useMemo(() => {
+		if (user?.isAuthenticated) {
+			return [
+				{ label: "Profile", to: "/profile" },
+				{ label: "Logout", action: handleLogout },
+			];
+		}
+		return [
+			{ label: "Login", to: "/login" },
+			{ label: "Register", to: "/register" },
+		];
+	}, [user?.isAuthenticated, handleLogout]);
+
 	return (
 		<AppBar position="sticky" elevation={0}>
-			<Toolbar sx={{ gap: 2 }}>
+			<Toolbar sx={{ gap: 1.5 }}>
+				{/* Brand */}
 				<Typography
 					component={RouterLink}
 					to="/"
@@ -54,6 +83,7 @@ export default function Navbar() {
 						textDecoration: "none",
 						fontWeight: 800,
 						letterSpacing: 0.3,
+						whiteSpace: "nowrap",
 					}}
 					variant="h6"
 				>
@@ -62,69 +92,188 @@ export default function Navbar() {
 
 				<Box sx={{ flex: 1 }} />
 
-				{/* Tag search */}
-				<Box
-					component="form"
-					onSubmit={(e) => {
-						e.preventDefault();
-						runTagSearch();
-					}}
-					sx={{ display: "flex", alignItems: "center", gap: 1, width: { xs: 180, sm: 260, md: 320 } }}
-				>
-					<TextField
-						size="small"
-						value={tagQuery}
-						onChange={(e) => setTagQuery(e.target.value)}
-						placeholder="Filter by tag (e.g. santorini)"
-						fullWidth
-						sx={{
-							"& .MuiOutlinedInput-root": { bgcolor: "rgba(255,255,255,0.12)" },
-							input: { color: "inherit" },
+				{/* ✅ Desktop search */}
+				{isMdUp && (
+					<Box
+						component="form"
+						onSubmit={(e) => {
+							e.preventDefault();
+							runTagSearch();
 						}}
-					/>
-					<IconButton color="inherit" type="submit" aria-label="search">
-						<SearchIcon />
-					</IconButton>
-				</Box>
+						sx={{
+							display: "flex",
+							alignItems: "center",
+							gap: 1,
+							width: 360,
+							maxWidth: "40vw",
+						}}
+					>
+						<TextField
+							size="small"
+							value={tagQuery}
+							onChange={(e) => setTagQuery(e.target.value)}
+							placeholder="Filter by tag (e.g. santorini)"
+							fullWidth
+							sx={{
+								"& .MuiOutlinedInput-root": { bgcolor: "rgba(255,255,255,0.12)" },
+								input: { color: "inherit" },
+							}}
+						/>
+						<IconButton color="inherit" type="submit" aria-label="search">
+							<SearchIcon />
+						</IconButton>
+					</Box>
+				)}
 
-
-				<Button color="inherit" component={RouterLink} to="/articles">
-					Articles
-				</Button>
-
-				{user?.isAuthenticated ? (
+				{/* ✅ Desktop links */}
+				{isMdUp ? (
 					<>
-						<Button
-							color="inherit"
-							component={RouterLink}
-							to="/profile"
-							sx={{ textTransform: "none", px: 1 }}
-						>
-							<Stack direction="row" spacing={1} alignItems="center">
-								<Avatar
-									src={avatarUrl}
-									alt={displayName}
-									sx={{ width: 28, height: 28 }}
-								/>
-								<Typography sx={{ fontWeight: 700 }}>{displayName}</Typography>
-							</Stack>
+						<Button color="inherit" component={RouterLink} to="/articles">
+							Articles
 						</Button>
 
-						<Button color="inherit" onClick={handleLogout}>
-							Logout
-						</Button>
+						{user?.isAuthenticated ? (
+							<>
+								<Button
+									color="inherit"
+									component={RouterLink}
+									to="/profile"
+									sx={{ textTransform: "none", px: 1 }}
+								>
+									<Stack direction="row" spacing={1} alignItems="center">
+										<Avatar src={avatarUrl} alt={displayName} sx={{ width: 28, height: 28 }} />
+										<Typography sx={{ fontWeight: 700, maxWidth: 160 }} noWrap>
+											{displayName}
+										</Typography>
+									</Stack>
+								</Button>
+								<Button color="inherit" onClick={handleLogout}>
+									Logout
+								</Button>
+							</>
+						) : (
+							<>
+								<Button color="inherit" component={RouterLink} to="/login">
+									Login
+								</Button>
+								<Button color="inherit" component={RouterLink} to="/register">
+									Register
+								</Button>
+							</>
+						)}
 					</>
 				) : (
+					/* ✅ Mobile actions: search icon + menu */
 					<>
-						<Button color="inherit" component={RouterLink} to="/login">
-							Login
-						</Button>
-						<Button color="inherit" component={RouterLink} to="/register">
-							Register
-						</Button>
+						<IconButton
+							color="inherit"
+							aria-label="search"
+							onClick={() => {
+								// On mobile we’ll just open the drawer and focus the search there
+								setDrawerOpen(true);
+							}}
+						>
+							<SearchIcon />
+						</IconButton>
+
+						<IconButton color="inherit" aria-label="menu" onClick={() => setDrawerOpen(true)}>
+							<MenuIcon />
+						</IconButton>
 					</>
 				)}
 			</Toolbar>
+
+			{/* ✅ Mobile Drawer */}
+			<Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
+				<Box sx={{ width: 320, p: 2 }} role="presentation">
+					<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
+						<Stack direction="row" spacing={1} alignItems="center">
+							{user?.isAuthenticated && <Avatar src={avatarUrl} alt={displayName} />}
+							<Typography sx={{ fontWeight: 900 }}>
+								{user?.isAuthenticated ? displayName : "Menu"}
+							</Typography>
+						</Stack>
+
+						<IconButton onClick={closeDrawer}>
+							<CloseIcon />
+						</IconButton>
+					</Box>
+
+					{/* Mobile Search */}
+					<Box
+						component="form"
+						onSubmit={(e) => {
+							e.preventDefault();
+							runTagSearch();
+							closeDrawer();
+						}}
+						sx={{ mb: 2 }}
+					>
+						<TextField
+							size="small"
+							value={tagQuery}
+							onChange={(e) => setTagQuery(e.target.value)}
+							placeholder="Filter by tag (e.g. santorini)"
+							fullWidth
+							InputProps={{
+								endAdornment: (
+									<InputAdornment position="end">
+										<IconButton
+											edge="end"
+											onClick={() => {
+												runTagSearch();
+												closeDrawer();
+											}}
+											aria-label="search"
+										>
+											<SearchIcon />
+										</IconButton>
+									</InputAdornment>
+								),
+							}}
+						/>
+					</Box>
+
+					<Divider sx={{ mb: 1 }} />
+
+					<List disablePadding>
+						<ListItemButton
+							onClick={() => {
+								navigate("/articles");
+								closeDrawer();
+							}}
+						>
+							<ListItemText primary="Articles" />
+						</ListItemButton>
+
+						{user?.isAuthenticated && (
+							<ListItemButton
+								onClick={() => {
+									navigate("/profile");
+									closeDrawer();
+								}}
+							>
+								<ListItemText primary="Profile" />
+							</ListItemButton>
+						)}
+
+						<Divider sx={{ my: 1 }} />
+
+						{authLinks.map((item) => (
+							<ListItemButton
+								key={item.label}
+								onClick={() => {
+									if (item.to) navigate(item.to);
+									if (item.action) item.action();
+									closeDrawer();
+								}}
+							>
+								<ListItemText primary={item.label} />
+							</ListItemButton>
+						))}
+					</List>
+				</Box>
+			</Drawer>
 		</AppBar>
 	);
 }
