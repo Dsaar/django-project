@@ -26,3 +26,18 @@ export async function fetchArticleById(id) {
 	const { data } = await api.get(`/articles/${id}/`);
 	return data;
 }
+
+export async function createArticle(payload) {
+	const { data } = await api.post("/articles/", payload);
+	return data;
+}
+
+
+export async function updateArticle(id, payload) {
+	const { data } = await api.patch(`/articles/${id}/`, payload);
+	return data;
+}
+
+export async function deleteArticle(id) {
+	await api.delete(`/articles/${id}/`);
+}

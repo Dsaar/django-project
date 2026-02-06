@@ -15,3 +15,19 @@ export function canManageComment(user, comment) {
 
 	return allowed;
 }
+
+
+export function canEditArticle(user, article) {
+	if (!user?.isAuthenticated) return false;
+
+	// Admin / writer
+	if (user.is_staff || user.is_superuser) return true;
+
+	// Author
+	return user.username === article?.author_name;
+}
+
+export function canDeleteArticle(user, article) {
+	// ✅ Same rules as edit
+	return canEditArticle(user, article);
+}

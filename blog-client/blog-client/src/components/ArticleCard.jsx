@@ -4,19 +4,21 @@ import {
 	CardContent,
 	Typography,
 	Box,
-	CardActionArea,
 	Stack,
 	Avatar,
 	Chip,
 	Divider,
+	IconButton,
 } from "@mui/material";
-import { Link as RouterLink } from "react-router-dom";
+import { Link as RouterLink, useNavigate } from "react-router-dom";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
+import { useAuth } from "../contexts/AuthContext";
+import { canEditArticle, canDeleteArticle } from "../utils/permissions";
 
 const FALLBACK_IMG =
 	"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1200&q=60";
-
 const FALLBACK_AVATAR = "https://i.pravatar.cc/100";
-
 
 function formatDate(iso) {
 	if (!iso) return "";
@@ -25,17 +27,20 @@ function formatDate(iso) {
 	return d.toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
 }
 
-export default function ArticleCard({ article }) {
-	const id = article?.id;
+export default function ArticleCard({ article, onRequestDelete }) {
+	const { user } = useAuth();
+	const navigate = useNavigate();
 
-	// support either image_url or imageUrl
-	const img = article?.image_url|| FALLBACK_IMG;
+	const id = article?.id;
+	const img = article?.image_url || FALLBACK_IMG;
 
 	const authorName = article?.author_name || "Traveler";
 	const dateText = formatDate(article?.published_at);
 	const tags = Array.isArray(article?.tags) ? article.tags : [];
 	const avatarUrl = article?.author_avatar_url || FALLBACK_AVATAR;
 
+	const canEdit = canEditArticle(user, article);
+	const canDelete = canDeleteArticle(user, article);
 
 	return (
 		<Card
@@ -49,28 +54,71 @@ export default function ArticleCard({ article }) {
 				overflow: "hidden",
 			}}
 		>
-			<CardActionArea
+			{/* Image area is NOT clickable anymore */}
+			<Box
+				sx={{
+					position: "relative",
+					width: "100%",
+					aspectRatio: "16 / 9",
+					bgcolor: "grey.200",
+					backgroundImage: `url(${img})`,
+					backgroundSize: "cover",
+					backgroundPosition: "center",
+				}}
+			>
+				{(canEdit || canDelete) && (
+					<Stack
+						direction="row"
+						spacing={1}
+						sx={{ position: "absolute", top: 8, right: 8 }}
+					>
+						{canEdit && (
+							<IconButton
+								size="small"
+								onClick={(e) => {
+									e.stopPropagation();
+									navigate(`/articles/${id}/edit`);
+								}}
+								sx={{
+									bgcolor: "rgba(255,255,255,0.9)",
+									"&:hover": { bgcolor: "white" },
+								}}
+							>
+								<EditIcon fontSize="small" />
+							</IconButton>
+						)}
+
+						{canDelete && (
+							<IconButton
+								size="small"
+								onClick={(e) => {
+									e.stopPropagation();
+									onRequestDelete?.(article); // ✅ open modal in parent
+								}}
+								sx={{
+									bgcolor: "rgba(255,255,255,0.9)",
+									"&:hover": { bgcolor: "white" },
+								}}
+							>
+								<DeleteIcon fontSize="small" />
+							</IconButton>
+						)}
+					</Stack>
+				)}
+			</Box>
+
+			{/* Only THIS bottom part navigates to the article */}
+			<Box
 				component={RouterLink}
 				to={`/articles/${id}`}
 				sx={{
-					height: "100%",
+					textDecoration: "none",
+					color: "inherit",
 					display: "flex",
 					flexDirection: "column",
-					alignItems: "stretch",
+					flexGrow: 1,
 				}}
 			>
-				{/* Image */}
-				<Box
-					sx={{
-						width: "100%",
-						aspectRatio: "16 / 9",
-						bgcolor: "grey.200",
-						backgroundImage: `url(${img})`,
-						backgroundSize: "cover",
-						backgroundPosition: "center",
-					}}
-				/>
-
 				<CardContent
 					sx={{
 						flexGrow: 1,
@@ -87,20 +135,6 @@ export default function ArticleCard({ article }) {
 						<Stack direction="row" alignItems="center" spacing={1} sx={{ minWidth: 0 }}>
 							<Avatar src={avatarUrl} sx={{ width: 28, height: 28 }} />
 							<Typography variant="caption" sx={{ fontWeight: 600 }}>
-								{authorName}
-							</Typography>
-
-							<Typography
-								variant="body2"
-								sx={{
-									fontWeight: 700,
-									textTransform: "uppercase",
-									letterSpacing: 0.8,
-									whiteSpace: "nowrap",
-									overflow: "hidden",
-									textOverflow: "ellipsis",
-								}}
-							>
 								{authorName}
 							</Typography>
 						</Stack>
@@ -149,7 +183,7 @@ export default function ArticleCard({ article }) {
 						)}
 					</Stack>
 				</CardContent>
-			</CardActionArea>
+			</Box>
 		</Card>
 	);
 }
