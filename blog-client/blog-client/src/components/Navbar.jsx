@@ -1,31 +1,21 @@
-// src/components/Navbar.jsx
 import {
 	AppBar,
 	Toolbar,
-	Typography,
 	Box,
-	Button,
-	TextField,
 	IconButton,
-	Avatar,
-	Stack,
-	Drawer,
-	List,
-	ListItemButton,
-	ListItemText,
-	Divider,
-	InputAdornment,
 	useMediaQuery,
 } from "@mui/material";
-import SearchIcon from "@mui/icons-material/Search";
 import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
-import { useMemo, useState } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useMemo, useState, useCallback } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "@mui/material/styles";
 import logo from "../assets/wandernotes-logo.png";
 
+import Brand from "./navbar/Brand";
+import DesktopSearch from "./navbar/DesktopSearch";
+import DesktopLinks from "./navbar/DesktopLinks";
+import MobileDrawer from "./navbar/MobileDrawer";
 
 export default function Navbar() {
 	const { user, logout } = useAuth();
@@ -38,27 +28,23 @@ export default function Navbar() {
 	const [tagQuery, setTagQuery] = useState("");
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
-	// ✅ same fields that work in your app
+	// same fields that work in your app
 	const avatarUrl = user?.profile?.avatar_url || "";
 	const displayName = user?.profile?.display_name || user?.username || "Account";
 
-	const runTagSearch = () => {
+	const runTagSearch = useCallback(() => {
 		const t = tagQuery.trim();
 		if (!t) {
 			navigate("/articles");
 			return;
 		}
 		navigate(`/articles?tag=${encodeURIComponent(t)}`);
-		// optional UX:
-		// setTagQuery("");
-	};
+	}, [tagQuery, navigate]);
 
-	const handleLogout = () => {
+	const handleLogout = useCallback(() => {
 		logout();
 		if (location.pathname === "/profile") navigate("/");
-	};
-
-	const closeDrawer = () => setDrawerOpen(false);
+	}, [logout, location.pathname, navigate]);
 
 	const authLinks = useMemo(() => {
 		if (user?.isAuthenticated) {
@@ -76,205 +62,51 @@ export default function Navbar() {
 	return (
 		<AppBar position="sticky" elevation={0}>
 			<Toolbar sx={{ gap: 1.5 }}>
-				{/* Brand */}
-				<Box
-					component={RouterLink}
-					to="/"
-					sx={{
-						display: "flex",
-						alignItems: "center",
-						textDecoration: "none",
-					}}
-				>
-					<Box
-						component="img"
-						src={logo}
-						alt="Wander Notes"
-						sx={{
-							height: { xs: 36, sm: 42, md: 80 }, // 👈 KEY LINE
-							width: "auto",
-						}}
-					/>
-				</Box>
-
+				<Brand logo={logo} />
 
 				<Box sx={{ flex: 1 }} />
 
-				{/* ✅ Desktop search */}
+				{/* Desktop search */}
 				{isMdUp && (
-					<Box
-						component="form"
-						onSubmit={(e) => {
-							e.preventDefault();
-							runTagSearch();
-						}}
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 1,
-							width: 360,
-							maxWidth: "40vw",
-						}}
-					>
-						<TextField
-							size="small"
-							value={tagQuery}
-							onChange={(e) => setTagQuery(e.target.value)}
-							placeholder="Filter by tag (e.g. santorini)"
-							fullWidth
-							sx={{
-								"& .MuiOutlinedInput-root": { bgcolor: "rgba(255,255,255,0.12)" },
-								input: { color: "inherit" },
-							}}
-						/>
-						<IconButton color="inherit" type="submit" aria-label="search">
-							<SearchIcon />
-						</IconButton>
-					</Box>
+					<DesktopSearch
+						tagQuery={tagQuery}
+						setTagQuery={setTagQuery}
+						onSearch={runTagSearch}
+					/>
 				)}
 
-				{/* ✅ Desktop links */}
+				{/* Desktop links or Mobile menu */}
 				{isMdUp ? (
-					<>
-						<Button color="inherit" component={RouterLink} to="/articles">
-							Articles
-						</Button>
-
-						{user?.isAuthenticated ? (
-							<>
-								<Button
-									color="inherit"
-									component={RouterLink}
-									to="/profile"
-									sx={{ textTransform: "none", px: 1 }}
-								>
-									<Stack direction="row" spacing={1} alignItems="center">
-										<Avatar src={avatarUrl} alt={displayName} sx={{ width: 40, height: 40 }} />
-										<Typography sx={{ fontWeight: 700, maxWidth: 160 }} noWrap>
-											{displayName}
-										</Typography>
-									</Stack>
-								</Button>
-								<Button color="inherit" onClick={handleLogout}>
-									Logout
-								</Button>
-							</>
-						) : (
-							<>
-								<Button color="inherit" component={RouterLink} to="/login">
-									Login
-								</Button>
-								<Button color="inherit" component={RouterLink} to="/register">
-									Register
-								</Button>
-							</>
-						)}
-					</>
+					<DesktopLinks
+						user={user}
+						avatarUrl={avatarUrl}
+						displayName={displayName}
+						onLogout={handleLogout}
+					/>
 				) : (
-					/* ✅ Mobile actions: search icon + menu */
-					<>
-						<IconButton color="inherit" aria-label="menu" onClick={() => setDrawerOpen(true)}>
-							<MenuIcon />
-						</IconButton>
-					</>
+					<IconButton
+						color="inherit"
+						aria-label="menu"
+						onClick={() => setDrawerOpen(true)}
+					>
+						<MenuIcon />
+					</IconButton>
 				)}
 			</Toolbar>
 
-			{/* ✅ Mobile Drawer */}
-			<Drawer anchor="right" open={drawerOpen} onClose={closeDrawer}>
-				<Box sx={{ width: 320, p: 2 }} role="presentation">
-					<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
-						<Stack direction="row" spacing={1} alignItems="center">
-							{user?.isAuthenticated && <Avatar src={avatarUrl} alt={displayName} />}
-							<Box
-								component="img"
-								src="/wandernotes-logo.png"
-								alt="Wander Notes"
-								sx={{ height: 32, width: "auto" }}
-							/>
-
-						</Stack>
-
-						<IconButton onClick={closeDrawer}>
-							<CloseIcon />
-						</IconButton>
-					</Box>
-
-					{/* Mobile Search */}
-					<Box
-						component="form"
-						onSubmit={(e) => {
-							e.preventDefault();
-							runTagSearch();
-							closeDrawer();
-						}}
-						sx={{ mb: 2 }}
-					>
-						<TextField
-							size="small"
-							value={tagQuery}
-							onChange={(e) => setTagQuery(e.target.value)}
-							placeholder="Filter by tag (e.g. santorini)"
-							fullWidth
-							InputProps={{
-								endAdornment: (
-									<InputAdornment position="end">
-										<IconButton
-											edge="end"
-											onClick={() => {
-												runTagSearch();
-												closeDrawer();
-											}}
-											aria-label="search"
-										>
-											<SearchIcon />
-										</IconButton>
-									</InputAdornment>
-								),
-							}}
-						/>
-					</Box>
-
-					<Divider sx={{ mb: 1 }} />
-
-					<List disablePadding>
-						<ListItemButton
-							onClick={() => {
-								navigate("/articles");
-								closeDrawer();
-							}}
-						>
-							<ListItemText primary="Articles" />
-						</ListItemButton>
-
-						{user?.isAuthenticated && (
-							<ListItemButton
-								onClick={() => {
-									navigate("/profile");
-									closeDrawer();
-								}}
-							>
-								<ListItemText primary="Profile" />
-							</ListItemButton>
-						)}
-
-						<Divider sx={{ my: 1 }} />
-
-						{authLinks.map((item) => (
-							<ListItemButton
-								key={item.label}
-								onClick={() => {
-									if (item.to) navigate(item.to);
-									if (item.action) item.action();
-									closeDrawer();
-								}}
-							>
-								<ListItemText primary={item.label} />
-							</ListItemButton>
-						))}
-					</List>
-				</Box>
-			</Drawer>
+			{/* Mobile Drawer */}
+			<MobileDrawer
+				open={drawerOpen}
+				onClose={() => setDrawerOpen(false)}
+				user={user}
+				avatarUrl={avatarUrl}
+				displayName={displayName}
+				tagQuery={tagQuery}
+				setTagQuery={setTagQuery}
+				onSearch={runTagSearch}
+				onNavigate={(to) => navigate(to)}
+				authLinks={authLinks}
+			/>
 		</AppBar>
 	);
 }
