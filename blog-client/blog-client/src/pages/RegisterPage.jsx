@@ -13,10 +13,12 @@ import {
 } from "@mui/material";
 import api from "../services/api";
 import { useAuth } from "../contexts/AuthContext";
+import { useSnack } from "../contexts/SnackbarContext";
 
 export default function RegisterPage() {
 	const navigate = useNavigate();
 	const { login } = useAuth();
+	const snack = useSnack();
 
 	const [form, setForm] = useState({
 		username: "",
@@ -52,11 +54,11 @@ export default function RegisterPage() {
 			// auto-login
 			await login(username, form.password);
 
+			snack.showSuccess("Account created ✅ Welcome!");
 			navigate("/");
 		} catch (err) {
 			const data = err?.response?.data;
 
-			// Handle common DRF validation formats
 			const msg =
 				(typeof data === "string" && data) ||
 				data?.detail ||
@@ -65,6 +67,7 @@ export default function RegisterPage() {
 				"Registration failed. Please try again.";
 
 			setError(msg);
+			snack.showError(msg);
 		} finally {
 			setLoading(false);
 		}
@@ -117,12 +120,7 @@ export default function RegisterPage() {
 								fullWidth
 							/>
 
-							<Button
-								type="submit"
-								variant="contained"
-								disabled={loading}
-								fullWidth
-							>
+							<Button type="submit" variant="contained" disabled={loading} fullWidth>
 								{loading ? "Creating account..." : "Register"}
 							</Button>
 

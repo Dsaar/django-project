@@ -24,6 +24,8 @@ import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import { useMemo, useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import { useTheme } from "@mui/material/styles";
+import logo from "../assets/wandernotes-logo.png";
+
 
 export default function Navbar() {
 	const { user, logout } = useAuth();
@@ -75,20 +77,26 @@ export default function Navbar() {
 		<AppBar position="sticky" elevation={0}>
 			<Toolbar sx={{ gap: 1.5 }}>
 				{/* Brand */}
-				<Typography
+				<Box
 					component={RouterLink}
 					to="/"
 					sx={{
-						color: "inherit",
+						display: "flex",
+						alignItems: "center",
 						textDecoration: "none",
-						fontWeight: 800,
-						letterSpacing: 0.3,
-						whiteSpace: "nowrap",
 					}}
-					variant="h6"
 				>
-					Wander Notes
-				</Typography>
+					<Box
+						component="img"
+						src={logo}
+						alt="Wander Notes"
+						sx={{
+							height: { xs: 36, sm: 42, md: 80 }, // 👈 KEY LINE
+							width: "auto",
+						}}
+					/>
+				</Box>
+
 
 				<Box sx={{ flex: 1 }} />
 
@@ -141,7 +149,7 @@ export default function Navbar() {
 									sx={{ textTransform: "none", px: 1 }}
 								>
 									<Stack direction="row" spacing={1} alignItems="center">
-										<Avatar src={avatarUrl} alt={displayName} sx={{ width: 28, height: 28 }} />
+										<Avatar src={avatarUrl} alt={displayName} sx={{ width: 40, height: 40 }} />
 										<Typography sx={{ fontWeight: 700, maxWidth: 160 }} noWrap>
 											{displayName}
 										</Typography>
@@ -165,17 +173,6 @@ export default function Navbar() {
 				) : (
 					/* ✅ Mobile actions: search icon + menu */
 					<>
-						<IconButton
-							color="inherit"
-							aria-label="search"
-							onClick={() => {
-								// On mobile we’ll just open the drawer and focus the search there
-								setDrawerOpen(true);
-							}}
-						>
-							<SearchIcon />
-						</IconButton>
-
 						<IconButton color="inherit" aria-label="menu" onClick={() => setDrawerOpen(true)}>
 							<MenuIcon />
 						</IconButton>
@@ -189,9 +186,13 @@ export default function Navbar() {
 					<Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", mb: 1 }}>
 						<Stack direction="row" spacing={1} alignItems="center">
 							{user?.isAuthenticated && <Avatar src={avatarUrl} alt={displayName} />}
-							<Typography sx={{ fontWeight: 900 }}>
-								{user?.isAuthenticated ? displayName : "Menu"}
-							</Typography>
+							<Box
+								component="img"
+								src="/wandernotes-logo.png"
+								alt="Wander Notes"
+								sx={{ height: 32, width: "auto" }}
+							/>
+
 						</Stack>
 
 						<IconButton onClick={closeDrawer}>

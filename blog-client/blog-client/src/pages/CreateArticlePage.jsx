@@ -12,13 +12,15 @@ import {
 	Typography,
 } from "@mui/material";
 import { createArticle } from "../services/articles";
+import { useSnack } from "../contexts/SnackbarContext";
 
 export default function CreateArticlePage() {
 	const navigate = useNavigate();
+	const snack = useSnack(); // ✅ ADD
 
 	const [title, setTitle] = useState("");
 	const [imageUrl, setImageUrl] = useState("");
-	const [tags, setTags] = useState(""); // comma-separated
+	const [tags, setTags] = useState("");
 	const [content, setContent] = useState("");
 
 	const [error, setError] = useState("");
@@ -30,6 +32,7 @@ export default function CreateArticlePage() {
 
 		if (!title.trim() || !content.trim()) {
 			setError("Title and content are required.");
+			snack.showError("Title and content are required."); // ✅ snackbar
 			return;
 		}
 
@@ -40,6 +43,7 @@ export default function CreateArticlePage() {
 
 		try {
 			setSaving(true);
+
 			const created = await createArticle({
 				title: title.trim(),
 				content: content.trim(),
@@ -47,9 +51,14 @@ export default function CreateArticlePage() {
 				tags_input,
 			});
 
+			// ✅ SUCCESS snackbar
+			snack.showSuccess("Article published successfully ✨");
+
 			navigate(`/articles/${created.id}`);
 		} catch (err) {
-			setError("Failed to create article. (Are you allowed to post?)");
+			const msg = "Failed to create article. (Are you allowed to post?)";
+			setError(msg);
+			snack.showError(msg); // ✅ ERROR snackbar
 		} finally {
 			setSaving(false);
 		}

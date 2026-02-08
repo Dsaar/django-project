@@ -1,3 +1,4 @@
+// src/pages/LoginPage.jsx
 import { useState } from "react";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 import {
@@ -12,10 +13,12 @@ import {
 	Stack,
 } from "@mui/material";
 import { useAuth } from "../contexts/AuthContext";
+import { useSnack } from "../contexts/SnackbarContext";
 
 export default function LoginPage() {
 	const navigate = useNavigate();
 	const { login } = useAuth();
+	const snack = useSnack();
 
 	const [form, setForm] = useState({ username: "", password: "" });
 	const [error, setError] = useState("");
@@ -32,12 +35,21 @@ export default function LoginPage() {
 
 		try {
 			await login(form.username.trim(), form.password);
+
+			// ✅ snackbar
+			snack.showSuccess("Logged in successfully ✅");
+
+			// ✅ navigate after login
 			navigate("/");
 		} catch (err) {
 			const msg =
 				err?.response?.data?.detail ||
 				"Login failed. Please check your credentials.";
+
 			setError(msg);
+
+			// ✅ snackbar
+			snack.showError(msg);
 		} finally {
 			setLoading(false);
 		}
@@ -54,7 +66,11 @@ export default function LoginPage() {
 						Sign in to comment and manage your content.
 					</Typography>
 
-					{error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+					{error && (
+						<Alert severity="error" sx={{ mb: 2 }}>
+							{error}
+						</Alert>
+					)}
 
 					<Box component="form" onSubmit={onSubmit}>
 						<Stack spacing={2}>
@@ -78,12 +94,7 @@ export default function LoginPage() {
 								fullWidth
 							/>
 
-							<Button
-								type="submit"
-								variant="contained"
-								disabled={loading}
-								fullWidth
-							>
+							<Button type="submit" variant="contained" disabled={loading} fullWidth>
 								{loading ? "Signing in..." : "Login"}
 							</Button>
 
