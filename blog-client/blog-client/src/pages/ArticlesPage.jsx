@@ -42,7 +42,7 @@ export default function ArticlesPage() {
 		(async () => {
 			try {
 				setError("");
-				const params = tag ? { tags__name: tag } : {};
+				const params = tag ? { "tags__name__icontains": tag } : {};
 				const items = await fetchArticles(params);
 				setArticles(Array.isArray(items) ? items : []);
 			} catch {

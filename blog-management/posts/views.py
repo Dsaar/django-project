@@ -15,7 +15,10 @@ class ArticleViewSet(viewsets.ModelViewSet):
     pagination_class = None
 
     filter_backends = [DjangoFilterBackend, SearchFilter]
-    filterset_fields = ["tags__name"]
+    filterset_fields = {
+    "tags__name": ["iexact", "icontains"],
+}
+
     search_fields = [
         "title",
         "content",
