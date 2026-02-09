@@ -1,10 +1,11 @@
-import { Paper, Box, Typography, Stack, Avatar, Chip } from "@mui/material";
+// src/components/articledetail/ArticleHero.jsx
+import { Box, Paper, Stack, Typography, Avatar, Chip, Divider } from "@mui/material";
 
 const FALLBACK_IMG =
 	"https://images.unsplash.com/photo-1501785888041-af3ef285b470?auto=format&fit=crop&w=1600&q=60";
 const FALLBACK_AVATAR = "https://i.pravatar.cc/100";
 
-export default function ArticleHero({ article, dateText }) {
+export default function ArticleHero({ article, dateText, content }) {
 	const heroImg = article?.image_url || FALLBACK_IMG;
 	const authorName = article?.author_name || "Traveler";
 	const authorAvatar = article?.author_avatar_url || FALLBACK_AVATAR;
@@ -12,6 +13,7 @@ export default function ArticleHero({ article, dateText }) {
 
 	return (
 		<Paper variant="outlined" sx={{ overflow: "hidden", borderRadius: 3, mb: 3 }}>
+			{/* image */}
 			<Box
 				sx={{
 					width: "100%",
@@ -23,6 +25,7 @@ export default function ArticleHero({ article, dateText }) {
 				}}
 			/>
 
+			{/* header */}
 			<Box sx={{ p: { xs: 2.5, md: 3 } }}>
 				<Typography variant="h4" sx={{ fontWeight: 900, mb: 1 }}>
 					{article?.title}
@@ -45,6 +48,14 @@ export default function ArticleHero({ article, dateText }) {
 						))}
 					</Stack>
 				)}
+			</Box>
+
+			{/* ✅ body inside same card */}
+			<Divider />
+			<Box sx={{ p: { xs: 2.5, md: 3 } }}>
+				<Typography sx={{ whiteSpace: "pre-line", lineHeight: 1.8 }}>
+					{content}
+				</Typography>
 			</Box>
 		</Paper>
 	);

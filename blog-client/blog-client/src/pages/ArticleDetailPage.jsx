@@ -1,3 +1,4 @@
+// src/pages/ArticleDetailPage.jsx
 import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Container, Alert, CircularProgress } from "@mui/material";
@@ -8,7 +9,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { canManageComment } from "../utils/permissions";
 
 import ArticleHero from "../components/articledetail/ArticleHero";
-import ArticleBody from "../components/articledetail/ArticleBody";
+// ❌ remove this line:
+// import ArticleBody from "../components/articledetail/ArticleBody";
 import CommentComposer from "../components/articledetail/CommentComposer";
 import CommentsSection from "../components/articledetail/CommentsSection";
 
@@ -72,7 +74,7 @@ export default function ArticleDetailPage() {
 
 	const sortedComments = useMemo(() => {
 		const arr = Array.isArray(comments) ? [...comments] : [];
-		arr.sort((a, b) => getCommentSortValue(b) - getCommentSortValue(a)); // latest first
+		arr.sort((a, b) => getCommentSortValue(b) - getCommentSortValue(a));
 		return arr;
 	}, [comments]);
 
@@ -133,9 +135,8 @@ export default function ArticleDetailPage() {
 
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
-			<ArticleHero article={article} dateText={dateText} />
-
-			<ArticleBody content={article?.content} />
+			{/* ✅ hero + body combined into one component */}
+			<ArticleHero article={article} dateText={dateText} content={article?.content} />
 
 			<CommentComposer
 				isAuthenticated={!!user?.isAuthenticated}
