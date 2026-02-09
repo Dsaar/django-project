@@ -1,4 +1,4 @@
-# Wander Notes 🌍✍️
+# Django Project - Wander Notes 🌍✍️
 
 Wander Notes is a full‑stack blog and travel diary platform built with **Django REST Framework** on the backend and **React + Material UI** on the frontend.
 
@@ -189,12 +189,6 @@ http://localhost:5173
 - Frontend can be deployed on Netlify or Vercel
 - Update CORS and API base URLs accordingly
 
----
-
-## 📸 Screenshots
-_Add screenshots here if needed_
-
----
 
 ## ✨ Future Improvements
 - Pagination for articles
