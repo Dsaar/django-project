@@ -17,13 +17,27 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from blog_api.api_root import api_root
+from .api_docs import api_docs
+
+
 
 urlpatterns = [
     path("admin/", admin.site.urls),
 
+    # API Root (Browsable index)
+    path("api/", api_root, name="api-root"),
+
     # JWT auth
     path("api/token/", TokenObtainPairView.as_view(), name="token_obtain_pair"),
     path("api/token/refresh/", TokenRefreshView.as_view(), name="token_refresh"),
+
+    # Browsable API login/logout (session auth for the browsable UI)
+    path("api-auth/", include("rest_framework.urls")),
+
+    # Full API docs hub
+    path("api-auth/", include(("rest_framework.urls", "rest_framework"), namespace="rest_framework")),
+
 
     # App APIs (will be added gradually)
     path("api/", include("accounts.urls")),
