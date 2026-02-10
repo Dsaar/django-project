@@ -18,7 +18,13 @@ The application allows users to browse articles, filter by tags, comment on post
 - Create, read, update, delete articles
 - Optional article hero image
 - Tag system (many‑to‑many)
-- Tag‑based filtering (case‑insensitive)
+- Full-text search across:
+  - Article title
+  - Article content
+  - Author username / name
+  - Tags (case-insensitive)
+- Combined filtering (search + tags)
+
 - Latest articles endpoint
 - Permission‑protected editing & deletion
 
@@ -151,6 +157,8 @@ http://localhost:5173
 
 ## 🔌 API Overview
 
+_All endpoints are fully documented and testable via the Django REST Framework Browsable API._
+
 ### Authentication
 - `POST /api/token/`
 - `POST /api/register/`
@@ -171,6 +179,24 @@ http://localhost:5173
 
 ---
 
+## 🔍 Search & Filtering
+
+The articles endpoint supports advanced querying using Django REST Framework’s
+filtering and search capabilities.
+
+### Supported Query Parameters
+
+| Parameter | Description | Example |
+|---------|------------|---------|
+| `search` | Searches title, content, author name, and tags | `?search=rome` |
+| `tags__name__icontains` | Filter by tag (case-insensitive) | `?tags__name__icontains=travel` |
+| Combined | Search + tag filter | `?search=italy&tags__name__icontains=food` |
+
+Search is **case-insensitive** and powered by DRF’s `SearchFilter`.
+
+
+---
+
 ## 🔐 Permissions
 
 | Action | Requirement |
@@ -180,6 +206,35 @@ http://localhost:5173
 | Edit/Delete article | Owner or Admin |
 | Comment | Authenticated |
 | Edit/Delete comment | Owner or Admin |
+
+---
+
+## 📚 API Documentation (Browsable API)
+
+Wander Notes uses **Django REST Framework’s Browsable API** to provide
+interactive, self-documenting endpoints.
+
+### Accessing the API
+
+| URL | Purpose |
+|----|--------|
+| `http://127.0.0.1:8000/api/` | API root (endpoint index) |
+| `http://127.0.0.1:8000/api/articles/` | Articles endpoints |
+| `http://127.0.0.1:8000/api-auth/login/` | Login for Browsable API |
+| `http://127.0.0.1:8000/api-auth/logout/` | Logout |
+
+### Authentication in Browsable API
+
+- Uses **Session Authentication** for the Browsable API UI
+- Uses **JWT authentication** for frontend / API clients
+- Login via `/api-auth/login/` to test protected endpoints interactively
+
+### What You Can Do in the Browsable API
+
+- View all available endpoints
+- See allowed HTTP methods (GET / POST / PUT / DELETE)
+- Inspect serializers and field validation
+- Submit requests directly from the browser
 
 ---
 

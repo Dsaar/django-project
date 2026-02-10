@@ -64,7 +64,7 @@ export default function MobileDrawer({
 						size="small"
 						value={tagQuery}
 						onChange={(e) => setTagQuery(e.target.value)}
-						placeholder="Filter by tag (e.g. santorini)"
+						placeholder="Search..."
 						fullWidth
 						InputProps={{
 							endAdornment: (

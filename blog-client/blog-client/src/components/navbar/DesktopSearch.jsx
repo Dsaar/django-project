@@ -21,7 +21,7 @@ export default function DesktopSearch({ tagQuery, setTagQuery, onSearch }) {
 				size="small"
 				value={tagQuery}
 				onChange={(e) => setTagQuery(e.target.value)}
-				placeholder="Filter by tag (e.g. santorini)"
+				placeholder="Search..."
 				fullWidth
 				sx={{
 					"& .MuiOutlinedInput-root": { bgcolor: "rgba(255,255,255,0.12)" },
