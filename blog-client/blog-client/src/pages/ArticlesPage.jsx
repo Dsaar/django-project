@@ -29,6 +29,7 @@ export default function ArticlesPage() {
 	const { user } = useAuth();
 
 	const tag = useMemo(() => (searchParams.get("tag") || "").trim(), [searchParams]);
+	const q = useMemo(() => (searchParams.get("search") || "").trim(), [searchParams]);
 
 	const [articles, setArticles] = useState([]);
 	const [error, setError] = useState("");
@@ -42,7 +43,10 @@ export default function ArticlesPage() {
 		(async () => {
 			try {
 				setError("");
-				const params = tag ? { "tags__name__icontains": tag } : {};
+				const params = {};
+				if (tag) params["tags__name__icontains"] = tag;
+				if (q) params.search = q;
+
 				const items = await fetchArticles(params);
 				setArticles(Array.isArray(items) ? items : []);
 			} catch {
@@ -50,11 +54,24 @@ export default function ArticlesPage() {
 				setArticles([]);
 			}
 		})();
-	}, [tag]);
+	}, [tag, q]);
 
-	const clearFilter = () => {
+	const clearFilters = () => {
 		const next = new URLSearchParams(searchParams);
 		next.delete("tag");
+		next.delete("search");
+		setSearchParams(next);
+	};
+
+	const clearTag = () => {
+		const next = new URLSearchParams(searchParams);
+		next.delete("tag");
+		setSearchParams(next);
+	};
+
+	const clearSearch = () => {
+		const next = new URLSearchParams(searchParams);
+		next.delete("search");
 		setSearchParams(next);
 	};
 
@@ -90,20 +107,49 @@ export default function ArticlesPage() {
 		}
 	};
 
+	const title = useMemo(() => {
+		if (tag && q) return `Articles for #${tag} matching “${q}”`;
+		if (tag) return `Articles tagged: ${tag}`;
+		if (q) return `Search results for: “${q}”`;
+		return "All Articles";
+	}, [tag, q]);
+
+	const hasFilters = Boolean(tag || q);
+
 	return (
 		<Container maxWidth="lg" sx={{ py: 4 }}>
-			<Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+			{/* Header */}
+			<Stack
+				direction={{ xs: "column", sm: "row" }}
+				spacing={1.5}
+				alignItems={{ xs: "flex-start", sm: "center" }}
+				sx={{ mb: 2 }}
+			>
 				<Typography variant="h4" sx={{ flex: 1, fontWeight: 900 }}>
-					{tag ? `Articles tagged: ${tag}` : "All Articles"}
+					{title}
 				</Typography>
 
-				{tag && (
-					<>
-						<Chip label={`#${tag}`} onDelete={clearFilter} />
-						<Button variant="outlined" onClick={clearFilter}>
+				{/* Active filter chips + clear */}
+				{hasFilters && (
+					<Stack direction="row" spacing={1} alignItems="center" useFlexGap flexWrap="wrap">
+						{tag && (
+							<Chip
+								label={`#${tag}`}
+								onDelete={clearTag}
+								variant="outlined"
+							/>
+						)}
+						{q && (
+							<Chip
+								label={`search: ${q}`}
+								onDelete={clearSearch}
+								variant="outlined"
+							/>
+						)}
+						<Button variant="outlined" onClick={clearFilters}>
 							Clear
 						</Button>
-					</>
+					</Stack>
 				)}
 			</Stack>
 

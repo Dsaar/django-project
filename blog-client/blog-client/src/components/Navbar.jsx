@@ -1,3 +1,4 @@
+// Navbar.jsx
 import {
 	AppBar,
 	Toolbar,
@@ -17,6 +18,24 @@ import DesktopSearch from "./navbar/DesktopSearch";
 import DesktopLinks from "./navbar/DesktopLinks";
 import MobileDrawer from "./navbar/MobileDrawer";
 
+function buildArticlesSearchUrl(raw) {
+	const t = raw.trim();
+	if (!t) return "/articles";
+
+	// tag mode: "#travel" OR "tag:travel"
+	if (t.startsWith("#")) {
+		const tag = t.slice(1).trim();
+		return tag ? `/articles?tag=${encodeURIComponent(tag)}` : "/articles";
+	}
+	if (t.toLowerCase().startsWith("tag:")) {
+		const tag = t.slice(4).trim();
+		return tag ? `/articles?tag=${encodeURIComponent(tag)}` : "/articles";
+	}
+
+	// full-text mode
+	return `/articles?search=${encodeURIComponent(t)}`;
+}
+
 export default function Navbar() {
 	const { user, logout } = useAuth();
 	const navigate = useNavigate();
@@ -25,21 +44,15 @@ export default function Navbar() {
 	const theme = useTheme();
 	const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
 
-	const [tagQuery, setTagQuery] = useState("");
+	const [query, setQuery] = useState("");
 	const [drawerOpen, setDrawerOpen] = useState(false);
 
-	// same fields that work in your app
 	const avatarUrl = user?.profile?.avatar_url || "";
 	const displayName = user?.profile?.display_name || user?.username || "Account";
 
-	const runTagSearch = useCallback(() => {
-		const t = tagQuery.trim();
-		if (!t) {
-			navigate("/articles");
-			return;
-		}
-		navigate(`/articles?tag=${encodeURIComponent(t)}`);
-	}, [tagQuery, navigate]);
+	const runSearch = useCallback(() => {
+		navigate(buildArticlesSearchUrl(query));
+	}, [query, navigate]);
 
 	const handleLogout = useCallback(() => {
 		logout();
@@ -63,19 +76,16 @@ export default function Navbar() {
 		<AppBar position="sticky" elevation={0}>
 			<Toolbar sx={{ gap: 1.5 }}>
 				<Brand logo={logo} />
-
 				<Box sx={{ flex: 1 }} />
 
-				{/* Desktop search */}
 				{isMdUp && (
 					<DesktopSearch
-						tagQuery={tagQuery}
-						setTagQuery={setTagQuery}
-						onSearch={runTagSearch}
+						tagQuery={query}
+						setTagQuery={setQuery}
+						onSearch={runSearch}
 					/>
 				)}
 
-				{/* Desktop links or Mobile menu */}
 				{isMdUp ? (
 					<DesktopLinks
 						user={user}
@@ -84,26 +94,21 @@ export default function Navbar() {
 						onLogout={handleLogout}
 					/>
 				) : (
-					<IconButton
-						color="inherit"
-						aria-label="menu"
-						onClick={() => setDrawerOpen(true)}
-					>
+					<IconButton color="inherit" aria-label="menu" onClick={() => setDrawerOpen(true)}>
 						<MenuIcon />
 					</IconButton>
 				)}
 			</Toolbar>
 
-			{/* Mobile Drawer */}
 			<MobileDrawer
 				open={drawerOpen}
 				onClose={() => setDrawerOpen(false)}
 				user={user}
 				avatarUrl={avatarUrl}
 				displayName={displayName}
-				tagQuery={tagQuery}
-				setTagQuery={setTagQuery}
-				onSearch={runTagSearch}
+				tagQuery={query}
+				setTagQuery={setQuery}
+				onSearch={runSearch}
 				onNavigate={(to) => navigate(to)}
 				authLinks={authLinks}
 			/>

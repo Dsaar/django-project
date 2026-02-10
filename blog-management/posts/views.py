@@ -25,6 +25,7 @@ class ArticleViewSet(viewsets.ModelViewSet):
         "author__username",
         "author__first_name",
         "author__last_name",
+        "tags__name",
     ]
 
     @decorators.action(
